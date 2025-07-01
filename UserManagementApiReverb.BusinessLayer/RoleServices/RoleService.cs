@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using UserManagementApiReverb.BusinessLayer.DTOs.Role;
 using UserManagementApiReverb.BusinessLayer.Mappings;
 using UserManagementApiReverb.DataAccessLayer;
@@ -9,7 +10,6 @@ public class RoleService : IRoleService
     
     private readonly AppDbContext _db;
     private readonly IRoleMapper _mapper;
-    private readonly IUserMapper _userMapper;
     public RoleService(IRoleMapper mapper,  AppDbContext db)
     {
         _db = db;
@@ -17,9 +17,21 @@ public class RoleService : IRoleService
     }
 
 
-    public Task<RoleResponse> GetRoleByRoleIdAsync(Guid roleId)
+    public async Task<RoleResponse> GetRoleByRoleIdAsync(Guid roleId)
     {
-        throw new NotImplementedException();
+        // var role = await _db.Roles.FindAsync(roleId); // burada primaryKey olduğundan dolayı FindAsync ile arama yaptım ve aynı zamanda şu an projem küçük 
+        // bir proje olduğu için tracked olup olmaması beni ilgilendirmiyor eğer tracked olmasını istemiyorsak AsNoTracking ve devamında ise aramayı FirstOrDefault
+        // ile yaparız. yukarıdaki işlemi yapmaya gerek yok çünkü bu kayıt vesaire yapıyor bunun yerine alttaki işlemi yaoarak kayıt tutmadan dah ahızlı ve memory'de
+        // tutmadan rahat bir şekilde işlemleri yaparız.
+
+        var role = await _db.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.RoleId == roleId);
+        
+        if (role == null)
+        {
+            return null;
+        }
+
+        return _mapper.MapRoleToResponse(role);
     }
 
     public Task<RoleResponse> GetRoleByNameAsync(string roleName)
