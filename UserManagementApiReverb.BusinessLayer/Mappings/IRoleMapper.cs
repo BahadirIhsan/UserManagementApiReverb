@@ -7,4 +7,5 @@ public interface IRoleMapper
 {
     RoleResponse MapRoleToResponse(Role role);
     RoleWithUserCountResponse MapRoleWithUserCountToResponse(Role role);
+    Role MapCreateRoleToResponse(RoleCreateRequest req);
 }
