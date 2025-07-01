@@ -21,4 +21,28 @@ public class UserMapper : IUserMapper
             Email = user.Email
         };
     }
+
+    public User MapFromRegisterRequest(UserRequestRegister req, string hash)
+    {
+        if (req == null)
+        {
+            return null;
+        }
+
+        return new User()
+        {
+            UserId = Guid.NewGuid(),
+            UserName = req.Username,
+            PasswordHash = hash,
+            FirstName = req.FirstName,
+            LastName = req.LastName,
+            Email = req.Email,
+
+            PhoneNumber = req.PhoneNumber,
+            Birthday = req.Birthday,
+            Address = req.Address,
+
+            CreatedAt = DateTime.Now,
+        };
+    }
 }

@@ -8,5 +8,6 @@ public record UserFilter
     public string? LastName {get; init;}
     public string? PhoneNumber {get; init;}
     public string? Address {get; init;}
+    public DateTime? Birthday { get; set; }
 
 }
