@@ -1,6 +1,14 @@
-﻿namespace UserManagementApiReverb.DataAccessLayer;
+﻿using Microsoft.EntityFrameworkCore;
+using UserManagementApiReverb.Entities.Entities;
 
-public class Class1
+namespace UserManagementApiReverb.DataAccessLayer;
+
+public class AppDbContext : DbContext
 {
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    
+    public DbSet<User> Users { get; set; }
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
     
 }

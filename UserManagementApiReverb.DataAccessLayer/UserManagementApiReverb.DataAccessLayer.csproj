@@ -1,9 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Entities katmanını referansla -->
+  <ItemGroup>
+    <ProjectReference Include="..\UserManagementApiReverb.Entities\UserManagementApiReverb.Entities.csproj" />
+  </ItemGroup>
+
+  <!-- Tüm EF Core paketleri ve Pomelo → aynı (8.x) sürüm -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore"            Version="8.0.*" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql"         Version="8.0.*" />
+
+    <!-- Tasarım-zamanı araçları -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design"     Version="8.0.*">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
 </Project>
