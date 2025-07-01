@@ -12,6 +12,6 @@ public interface IUserService
     Task<UserResponse> UpdateUserAsync(UserRequestUpdate req);
     Task<UserResponse> DeleteUserAsync(Guid UserId);
     Task<UserResponse> GetUserByEmailOrUsername(string? Email, string? Username);
-    Task<PagedResult<UserResponse>> GetAllUsersPaginationAsync(UserFilter filter, Paging paging, Sorting sorting);
+    Task<PagedResult<UserResponse>> GetAllUsersPaginationAsync(Paging paging, Sorting sorting);
 
 }
