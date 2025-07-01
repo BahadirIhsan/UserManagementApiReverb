@@ -1,4 +1,5 @@
 using UserManagementApiReverb.BusinessLayer.DTOs.Role;
+using UserManagementApiReverb.Entities.Entities;
 
 namespace UserManagementApiReverb.BusinessLayer.RoleServices;
 

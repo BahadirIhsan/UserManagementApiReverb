@@ -38,4 +38,19 @@ public class RoleMapper : IRoleMapper
             CreatedAt = role.CreatedAt
         };
     }
+
+    public Role MapCreateRoleToResponse(RoleCreateRequest req)
+    {
+        if (req == null)
+        {
+            return null;
+        }
+
+        return new Role()
+        {
+            RoleName = req.RoleName,
+            RoleDescription = req.RoleDescription,
+            CreatedAt = DateTime.Now
+        };
+    }
 }
