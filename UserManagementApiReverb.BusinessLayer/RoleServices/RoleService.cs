@@ -9,6 +9,7 @@ public class RoleService : IRoleService
     
     private readonly AppDbContext _db;
     private readonly IRoleMapper _mapper;
+    private readonly IUserMapper _userMapper;
     public RoleService(IRoleMapper mapper,  AppDbContext db)
     {
         _db = db;
