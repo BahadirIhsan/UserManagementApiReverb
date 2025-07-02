@@ -56,7 +56,7 @@ public class UserService : IUserService
         return _mapper.MapUserToUserResponse(user);
     }
     
-    public async Task<UserResponse> GetUserByEmailOrUsername(string? Email, string? Username)
+    public async Task<UserResponse> GetUserByEmailOrUsernameAsync(string? Email, string? Username)
     {
         bool hasUserName = !string.IsNullOrWhiteSpace(Username);
         bool hasEmail = !string.IsNullOrWhiteSpace(Email);
@@ -111,7 +111,12 @@ public class UserService : IUserService
         {
             throw new ArgumentException("Email already exists");
         }
-        
+
+        if (await _db.Users.AnyAsync(u => u.UserName == req.Username))
+        {
+            throw new ArgumentException("UserName already exists");
+        }
+
         string hash = BCrypt.Net.BCrypt.HashPassword(req.Password);
         
         var user = _mapper.MapFromRegisterRequest(req,hash);
