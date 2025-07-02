@@ -6,7 +6,7 @@ using UserManagementApiReverb.BusinessLayer.UserServices;
 namespace UserManagementApiReverb.PresentationLayer.Controllers;
 
 [ApiController]
-[Route("api/users")]
+[Route("api/Users")]
 public class UserController:  ControllerBase
 {
     private readonly IUserService _userService;
@@ -86,12 +86,12 @@ public class UserController:  ControllerBase
         return CreatedAtAction(nameof(GetById), new {UserId =  user.UserId}, user);
     }
 
-    [HttpPut("Update")]
+    [HttpPut("UpdateUser")]
     public async Task<ActionResult<UserResponse>> Update(Guid UserId,UserRequestUpdate req)
     {
-        if (req.Id != Guid.Empty && req.Id != UserId)
+        if (req.Id == Guid.Empty || req.Id != UserId)
         {
-            return BadRequest();
+            return BadRequest("Id is invalid or empty");
         }
         req.Id = UserId;
         var  user = await _userService.UpdateUserAsync(req);

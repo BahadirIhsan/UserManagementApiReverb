@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using UserManagementApiReverb.BusinessLayer.DTOs;
 using UserManagementApiReverb.BusinessLayer.DTOs.Role;
 using UserManagementApiReverb.BusinessLayer.Mappings;
 using UserManagementApiReverb.DataAccessLayer;
@@ -8,7 +9,6 @@ namespace UserManagementApiReverb.BusinessLayer.RoleServices;
 
 public class RoleService : IRoleService
 {
-    
     private readonly AppDbContext _db;
     private readonly IRoleMapper _mapper;
     public RoleService(IRoleMapper mapper,  AppDbContext db)
@@ -16,9 +16,8 @@ public class RoleService : IRoleService
         _db = db;
         _mapper = mapper;
     }
-
-
-    public async Task<RoleResponse> GetRoleByRoleIdAsync(Guid roleId)
+    
+    public async Task<RoleResponse> GetRoleByIdAsync(Guid roleId)
     {
         // var role = await _db.Roles.FindAsync(roleId); // burada primaryKey olduğundan dolayı FindAsync ile arama yaptım ve aynı zamanda şu an projem küçük 
         // bir proje olduğu için tracked olup olmaması beni ilgilendirmiyor eğer tracked olmasını istemiyorsak AsNoTracking ve devamında ise aramayı FirstOrDefault
@@ -48,15 +47,21 @@ public class RoleService : IRoleService
 
     public async Task<RoleResponse> CreateRoleAsync(RoleCreateRequest req)
     {
+        bool exists = await _db.Roles.AnyAsync(r => r.RoleName == req.RoleName);
+        if (exists)
+        {
+            throw new InvalidOperationException("Role already exists");
+        }
+        
         var newRole = _mapper.MapCreateRoleToResponse(req);
         _db.Roles.Add(newRole);
         await _db.SaveChangesAsync();
         return _mapper.MapRoleToResponse(newRole);
     }
 
-    public async Task<RoleResponse> UpdateRoleAsync(Guid roleId, RoleUpdateRequest req)
+    public async Task<RoleResponse> UpdateRoleAsync(RoleUpdateRequest req)
     {
-        var role = await _db.Roles.FindAsync(roleId);
+        var role = await _db.Roles.FindAsync(req.Id);
 
         if (role == null)
         {
@@ -66,6 +71,16 @@ public class RoleService : IRoleService
         if (role.IsSystemRole)
         {
             throw new InvalidOperationException("Cannot update system role");
+        }
+        
+        if (req.RoleName != null && req.RoleName != role.RoleName)
+        {
+            bool hasRoleTaken = await _db.Roles.AnyAsync(r => r.RoleName == req.RoleName);
+            if (hasRoleTaken)
+            {
+                throw new InvalidOperationException("Role already exists");
+            }
+            role.RoleName = req.RoleName;
         }
         
         role.RoleName = req.RoleName;
@@ -102,26 +117,26 @@ public class RoleService : IRoleService
         return true;
     }
 
-    public async Task<IEnumerable<RoleWithUserCountResponse>> GetAllRolesAsync(bool? IsSystemRole = null)
+    public async Task<PagedResult<RoleWithUserCountResponse>> GetAllRolesPaginationAsync(Paging paging, Sorting sorting)
     {
-        // burada IQueryable bir tanım yapmamız lazım var tanımına göre var'a göre bir tanım yaparsak type uyuşmazlığı olur IIncludableQueryable<…>
-        // bu şekilde algılar var bu nesneyi ama bu nesen aslına ikinci atama işleminde yani aşağıda where ile çağrıldığı zaman hatalı bir yapısı olur 
-        // bu durumla karşılaşmamak için ve hatalı olacağı için en başta bu şekilde bir atama yaparız veya aşağıda typeCasting işlemiyle de bu işlemi 
-        // yapabiliriz ama bu şekilde bir tanım yapmak daha efektif bir şekilde çalışır
-        IQueryable<Role> query = _db.Roles.AsNoTracking().Include(r => r.UserRoles);
-
-        if (IsSystemRole.HasValue)
-        {
-            query = query.Where(r => r.IsSystemRole == IsSystemRole.Value);
-        }
+        IQueryable<Role> query = _db.Roles.AsNoTracking();
+        query = sorting.sortDir == "desc" ? query.OrderByDescending(u => u.CreatedAt) : query.OrderBy(u => u.CreatedAt);
         
-        var roles = await query.ToListAsync();
+        int totalCount = await query.CountAsync();
+        
+        int skip = (paging.Page -1) * paging.PageSize;
+        query = query.Skip(skip).Take(paging.PageSize);
+        
+        List<Role> roles = await query.ToListAsync();
+        var items = roles.Select(r => _mapper.MapRoleWithUserCountToResponse(r));
 
-        if (roles.Count == 0)
+        return new PagedResult<RoleWithUserCountResponse>
         {
-            return Enumerable.Empty<RoleWithUserCountResponse>();
-        }
+            Items = items,
+            TotalCount = totalCount,
+            Page = paging.Page,
+            PageSize = paging.PageSize
+        };
 
-        return roles.Select(r => _mapper.MapRoleWithUserCountToResponse(r));
     }
 }
