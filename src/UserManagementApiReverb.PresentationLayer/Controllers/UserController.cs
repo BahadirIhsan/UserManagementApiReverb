@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagementApiReverb.BusinessLayer.DTOs;
 using UserManagementApiReverb.BusinessLayer.DTOs.User;
@@ -60,6 +61,7 @@ public class UserController:  ControllerBase
         return Ok(user);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("PaginationAllUsers")]
     public async Task<ActionResult<PagedResult<UserResponse>>> GetAllUsersWithPagination([FromQuery] Paging paging, [FromQuery] Sorting sorting)
     {
@@ -74,7 +76,7 @@ public class UserController:  ControllerBase
         
         return Ok(users);
     }
-
+    
     [HttpPost("SignUp")]
     public async Task<ActionResult<UserResponse>> Create(UserRequestRegister req)
     {

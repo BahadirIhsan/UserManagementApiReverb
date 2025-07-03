@@ -33,12 +33,11 @@ public class AuthService : IAuthService
         }
         
         var tokenResult = _token.GenerateToken(user);
-        var expiresAt = DateTime.UtcNow.AddMinutes(60);
 
         return new LoginResponse
         {
             AccessToken = tokenResult.AccessToken,
-            ExpiresAt = expiresAt
+            ExpiresAt = tokenResult.ExpiresAt
         };
     }
 }

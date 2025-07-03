@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagementApiReverb.BusinessLayer.DTOs.UserRole;
 using UserManagementApiReverb.BusinessLayer.UserRoleService;
 
 namespace UserManagementApiReverb.PresentationLayer.Controllers;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("Api/UserRole")]
 public class UserRoleController : ControllerBase
@@ -14,7 +16,7 @@ public class UserRoleController : ControllerBase
     {
         _userRoleService = userRoleService;
     }
-
+    
     [HttpGet("UsersByRoleId")]
     public async Task<ActionResult<List<UserRoleResponse>>> GetUsersByRoleId(Guid roleId)
     {

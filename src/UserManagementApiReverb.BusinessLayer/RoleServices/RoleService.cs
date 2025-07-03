@@ -24,7 +24,7 @@ public class RoleService : IRoleService
         // ile yaparız. yukarıdaki işlemi yapmaya gerek yok çünkü bu kayıt vesaire yapıyor bunun yerine alttaki işlemi yaoarak kayıt tutmadan dah ahızlı ve memory'de
         // tutmadan rahat bir şekilde işlemleri yaparız.
 
-        var role = await _db.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.RoleId == roleId);
+        var role = await _db.Roles.Include(r => r.UserRoles).AsNoTracking().FirstOrDefaultAsync(r => r.RoleId == roleId);
         
         if (role == null)
         {
@@ -119,7 +119,7 @@ public class RoleService : IRoleService
 
     public async Task<PagedResult<RoleWithUserCountResponse>> GetAllRolesPaginationAsync(Paging paging, Sorting sorting)
     {
-        IQueryable<Role> query = _db.Roles.AsNoTracking();
+        IQueryable<Role> query = _db.Roles.Include(r => r.UserRoles).AsNoTracking();
         query = sorting.sortDir == "desc" ? query.OrderByDescending(u => u.CreatedAt) : query.OrderBy(u => u.CreatedAt);
         
         int totalCount = await query.CountAsync();

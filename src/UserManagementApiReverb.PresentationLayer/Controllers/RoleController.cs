@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagementApiReverb.BusinessLayer.DTOs;
 using UserManagementApiReverb.BusinessLayer.DTOs.Role;
@@ -51,7 +52,8 @@ public class RoleController : ControllerBase
         // çünkü headers kısmındaki key value imzası otomatik olarak string type'dır method imzası bu şekilde olduğundan mecburi bir tanım bu.
         return Ok(roles);
     }
-
+    
+    [Authorize(Roles = "Admin, Manager")]
     [HttpPost("CreateRole")]
     public async Task<ActionResult<RoleResponse>> CreateRoleAsync(RoleCreateRequest req)
     {
@@ -67,6 +69,7 @@ public class RoleController : ControllerBase
         
     }
 
+    [Authorize(Roles = "Manager")]
     [HttpPut("UpdateRole")]
     public async Task<ActionResult<RoleResponse>> UpdateRoleAsync(Guid roleId, [FromBody] RoleUpdateRequest req)
     {
@@ -90,7 +93,8 @@ public class RoleController : ControllerBase
         }
         
     }
-
+    
+    [Authorize(Roles = "Manager")]
     [HttpDelete("DeleteRole")]
     public async Task<ActionResult<RoleResponse>> DeleteRoleAsync(Guid roleId)
     {
