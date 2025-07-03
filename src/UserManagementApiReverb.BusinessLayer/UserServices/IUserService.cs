@@ -10,7 +10,7 @@ public interface IUserService
     Task<UserResponse> GetUserAsyncByUsername(string UserName);
     Task<UserResponse> CreateUserAsync(UserRequestRegister req);
     Task<UserResponse> UpdateUserAsync(UserRequestUpdate req);
-    Task<UserResponse> DeleteUserAsync(Guid UserId);
+    Task<bool> DeleteUserAsync(Guid UserId);
     Task<UserResponse> GetUserByEmailOrUsernameAsync(string? Email, string? Username);
     Task<PagedResult<UserResponse>> GetAllUsersPaginationAsync(Paging paging, Sorting sorting);
 

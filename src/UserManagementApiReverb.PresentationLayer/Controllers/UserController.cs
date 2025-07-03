@@ -107,10 +107,12 @@ public class UserController:  ControllerBase
     public async Task<ActionResult<UserResponse>> Delete(Guid UserId)
     {
         var user = await _userService.DeleteUserAsync(UserId);
-        if (user == null)
+        
+        if (!user)
         {
             return NotFound();
         }
+        
         return NoContent();
     }
     

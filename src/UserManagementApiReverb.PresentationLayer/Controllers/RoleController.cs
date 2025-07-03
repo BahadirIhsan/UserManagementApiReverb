@@ -89,7 +89,7 @@ public class RoleController : ControllerBase
         try
         {
             var role = await _roleService.DeleteRoleAsync(roleId);
-            if (role == null)
+            if (!role)
             {
                 return NotFound();
             }

@@ -10,7 +10,7 @@ public class UserRole
     public Role Role { get; set; } = null!;
     
     public DateTime AssignedAt { get; set; }
-    public DateTime ExpiresAt { get; set; }
+    public DateTime ExpiresAt { get; set; } = DateTime.Now;
     
     public DateTime? RemovedAt { get; set; } 
     public string? RemovedReason { get; set; }

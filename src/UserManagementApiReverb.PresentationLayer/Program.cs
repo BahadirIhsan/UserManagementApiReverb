@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagementApiReverb.BusinessLayer.Mappings;
 using UserManagementApiReverb.BusinessLayer.RoleServices;
+using UserManagementApiReverb.BusinessLayer.UserRoleService;
 using UserManagementApiReverb.BusinessLayer.UserServices;
 using UserManagementApiReverb.DataAccessLayer;
 
@@ -19,6 +20,8 @@ builder.Services.AddScoped<IUserMapper, UserMapper>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IRoleMapper, RoleMapper>();
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IUserRoleMapper, UserRoleMapper>();
 
 builder.Services.AddControllers();
 

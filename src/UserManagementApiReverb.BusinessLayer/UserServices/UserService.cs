@@ -165,14 +165,14 @@ public class UserService : IUserService
         
     }
 
-    public async Task<UserResponse> DeleteUserAsync(Guid UserId)
+    public async Task<bool> DeleteUserAsync(Guid UserId)
     {
         var user = await _db.Users.FindAsync(UserId);
-        if (user == null) return null;
+        if (user == null) return false;
         
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
-        return _mapper.MapUserToUserResponse(user);
+        return true;
         
     }
     
