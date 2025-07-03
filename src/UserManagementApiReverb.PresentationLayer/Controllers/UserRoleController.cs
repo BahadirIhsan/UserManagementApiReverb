@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using UserManagementApiReverb.BusinessLayer.DTOs.UserRole;
-using UserManagementApiReverb.BusinessLayer.Mappings;
 using UserManagementApiReverb.BusinessLayer.UserRoleService;
 
 namespace UserManagementApiReverb.PresentationLayer.Controllers;

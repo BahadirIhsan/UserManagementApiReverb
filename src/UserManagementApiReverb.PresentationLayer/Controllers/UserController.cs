@@ -78,12 +78,20 @@ public class UserController:  ControllerBase
     [HttpPost("SignUp")]
     public async Task<ActionResult<UserResponse>> Create(UserRequestRegister req)
     {
-        var user = await _userService.CreateUserAsync(req);
-        if (user == null)
+        try
         {
-            return BadRequest();
+            var user = await _userService.CreateUserAsync(req);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(GetById), new {UserId =  user.UserId}, user);
         }
-        return CreatedAtAction(nameof(GetById), new {UserId =  user.UserId}, user);
+        catch (ArgumentException e)
+        {
+            return Conflict(e.Message);
+        }
+        
     }
 
     [HttpPut("UpdateUser")]

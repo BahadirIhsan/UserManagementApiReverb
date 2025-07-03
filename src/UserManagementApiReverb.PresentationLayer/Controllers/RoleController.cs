@@ -55,8 +55,16 @@ public class RoleController : ControllerBase
     [HttpPost("CreateRole")]
     public async Task<ActionResult<RoleResponse>> CreateRoleAsync(RoleCreateRequest req)
     {
-        var role = await _roleService.CreateRoleAsync(req);
-        return CreatedAtAction(nameof(GetRoleById), new {roleId = role.RoleId},  role);
+        try
+        {
+            var role = await _roleService.CreateRoleAsync(req);
+            return CreatedAtAction(nameof(GetRoleById), new {roleId = role.RoleId},  role);
+        }
+        catch (InvalidOperationException e)
+        {
+            return Conflict(e.Message);
+        }
+        
     }
 
     [HttpPut("UpdateRole")]
