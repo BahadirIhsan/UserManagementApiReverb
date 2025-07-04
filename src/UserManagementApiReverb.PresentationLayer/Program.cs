@@ -11,6 +11,14 @@ using UserManagementApiReverb.DataAccessLayer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
+using Serilog;
+using Serilog.Events;
+using Amazon.CloudWatchLogs;
+using Amazon.Runtime;
+using Serilog.Formatting.Json;
+using Serilog.Sinks.AwsCloudWatch;
+using UserManagementApiReverb.BusinessLayer.Logging;
+using UserManagementApiReverb.PresentationLayer.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -80,7 +88,61 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddControllers();
 
+
+
+var region  = builder.Configuration["AWS:Region"]    ?? "eu-north-1";
+var logGroup   = builder.Configuration["AWS:LogGroup"]  ?? "UserManagementApiReverb";
+var accessKey  = builder.Configuration["AWS:AccessKey"];
+var secretKey  = builder.Configuration["AWS:SecretKey"];
+
+var awsCreds   = new BasicAWSCredentials(accessKey, secretKey);
+
+var options = new CloudWatchSinkOptions
+{
+    LogGroupName = logGroup,
+    MinimumLogEventLevel = LogEventLevel.Information,
+    TextFormatter = new JsonFormatter(),
+    // Her uygulama instance’ı için otomatik stream adı (“hostname-tarih”)
+    LogStreamNameProvider = new DefaultLogStreamProvider()
+};
+
+var cloudWatchConfig = new AmazonCloudWatchLogsConfig
+{
+    RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(region)
+};
+
+var cloudWatchClient = new AmazonCloudWatchLogsClient(awsCreds, cloudWatchConfig);
+
+// ----- Serilog + CloudWatch -----
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()                                // global eşik
+    .MinimumLevel.Override("Security",    LogEventLevel.Information)
+    .MinimumLevel.Override("Audit",       LogEventLevel.Information)
+    .MinimumLevel.Override("Performance", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithClientIp()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithProperty("Service", "UserManagementApiReverb")
+    .WriteTo.AmazonCloudWatch(options, cloudWatchClient) // logları aws cloudWatch'a gönderir.
+    .WriteTo.Console()
+    .CreateLogger();
+
+
+builder.Host.UseSerilog();
+
+builder.Services.AddSingleton<Serilog.ILogger>(Log.Logger);
+builder.Services.AddSingleton<IAppLogger, CloudWatchLogger>();
+builder.Services.AddSingleton<IAmazonCloudWatchLogs, AmazonCloudWatchLogsClient>();
+
+
+
+
+
+
 var app = builder.Build();
+
+app.UseMiddleware<LogEnrichmentMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
