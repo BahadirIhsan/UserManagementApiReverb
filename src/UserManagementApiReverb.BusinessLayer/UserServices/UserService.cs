@@ -139,7 +139,7 @@ public class UserService : IUserService
             bool userNameTaken = await _db.Users.AnyAsync(u => u.UserName == req.UserName && u.UserId != req.Id);
             if (userNameTaken)
             {
-                throw new ArgumentException("UserName bahadir");
+                throw new ArgumentException("Username already exists");
             }
             user.UserName = req.UserName;
         }
