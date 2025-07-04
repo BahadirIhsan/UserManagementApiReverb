@@ -115,7 +115,7 @@ var cloudWatchClient = new AmazonCloudWatchLogsClient(awsCreds, cloudWatchConfig
 
 // ----- Serilog + CloudWatch -----
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()                                // global eşik
+    .MinimumLevel.Warning()                                // global eşik
     .MinimumLevel.Override("Security",    LogEventLevel.Information)
     .MinimumLevel.Override("Audit",       LogEventLevel.Information)
     .MinimumLevel.Override("Performance", LogEventLevel.Information)
