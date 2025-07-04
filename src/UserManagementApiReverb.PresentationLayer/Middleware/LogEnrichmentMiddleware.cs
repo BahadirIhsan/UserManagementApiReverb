@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Serilog;
 using Serilog.Context;
+using UserManagementApiReverb.BusinessLayer.Logging;
 
 namespace UserManagementApiReverb.PresentationLayer.Middleware;
 
@@ -24,8 +26,24 @@ public class LogEnrichmentMiddleware
         var operation = $"{controller}.{action}";
         var eventType = action;
 
+        var category = controller switch
+        {
+            "Auth"
+                => LogCategories.Security,
+            "User" or "Role" or "UserRole" or "Users" or "Roles"
+                => LogCategories.Audit,
+            "Business" // deneme
+                => LogCategories.Business,
+            "Performance" // deneme
+                => LogCategories.Performance,
+            
+            _ => LogCategories.Application
+                
+        };
+
         using (LogContext.PushProperty("Operation", operation))
         using (LogContext.PushProperty("EventType", eventType))
+        using (LogContext.PushProperty("Category", category))
         {
             await _next(context);
         }

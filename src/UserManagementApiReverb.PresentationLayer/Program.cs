@@ -8,9 +8,11 @@ using UserManagementApiReverb.BusinessLayer.UserRoleService;
 using UserManagementApiReverb.BusinessLayer.UserServices;
 using UserManagementApiReverb.DataAccessLayer;
 
+// JWT İÇİN
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
+// AWS CLOUDWATCH İÇİN
 using Serilog;
 using Serilog.Events;
 using Amazon.CloudWatchLogs;
@@ -23,8 +25,7 @@ using UserManagementApiReverb.PresentationLayer.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -113,18 +114,20 @@ var cloudWatchConfig = new AmazonCloudWatchLogsConfig
 
 var cloudWatchClient = new AmazonCloudWatchLogsClient(awsCreds, cloudWatchConfig);
 
-// ----- Serilog + CloudWatch -----
+// Serilog ve CloudWatch
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Warning()                                // global eşik
-    .MinimumLevel.Override("Security",    LogEventLevel.Information)
-    .MinimumLevel.Override("Audit",       LogEventLevel.Information)
+    .MinimumLevel.Information()                                // global eşik
+    .MinimumLevel.Override("Security", LogEventLevel.Information)
+    .MinimumLevel.Override("Audit", LogEventLevel.Information)
     .MinimumLevel.Override("Performance", LogEventLevel.Information)
+    .MinimumLevel.Override("Business", LogEventLevel.Information)
+    .MinimumLevel.Override("Application", LogEventLevel.Information)
     .Enrich.FromLogContext()
     .Enrich.WithMachineName()
     .Enrich.WithClientIp()
     .Enrich.WithEnvironmentName()
     .Enrich.WithProperty("Service", "UserManagementApiReverb")
-    .WriteTo.AmazonCloudWatch(options, cloudWatchClient) // logları aws cloudWatch'a gönderir.
+    .WriteTo.AmazonCloudWatch(options, cloudWatchClient) // logları aws cloudwatch'a gönderir
     .WriteTo.Console()
     .CreateLogger();
 
@@ -134,10 +137,7 @@ builder.Host.UseSerilog();
 builder.Services.AddSingleton<Serilog.ILogger>(Log.Logger);
 builder.Services.AddSingleton<IAppLogger, CloudWatchLogger>();
 builder.Services.AddSingleton<IAmazonCloudWatchLogs, AmazonCloudWatchLogsClient>();
-
-
-
-
+builder.Services.AddScoped<ILogQueryService, LogQueryService>();
 
 
 var app = builder.Build();

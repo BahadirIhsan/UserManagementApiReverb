@@ -11,18 +11,28 @@ public class CloudWatchLogger : IAppLogger
         _logger = logger;
     }
     
-    public void LogInfo(string message, object? data = null)
-    {
-        _logger.Information("{Message} {@Data}, message, data");
+    public void LogDebug(string message, string category = LogCategories.Application, object? data = null)
+    {   
+        _logger.ForContext("Category", category).Debug("{message} {@data}", message, data);
     }
 
-    public void LogWarn(string message, object? data = null)
+    public void LogInfo(string message, string category = LogCategories.Application, object? data = null)
     {
-        _logger.Warning("{Message} {@Data}, message, data");
+        _logger.ForContext("Category", category).Information("{message} {@data}", message, data);
     }
 
-    public void LogError(string message, Exception e, object? data = null)
+    public void LogWarn(string message, string category = LogCategories.Application, object? data = null)
     {
-        _logger.Error(e,"{Message} {@Data}", message, data);
+        _logger.ForContext("Category", category).Warning("{message} {@data}", message, data);
+    }
+
+    public void LogError(string message, Exception e, string category = LogCategories.Application, object? data = null)
+    {
+        _logger.ForContext("Category", category).Error(e, "{message} {@data}", message, data);
+    }
+
+    public void LogCritical(string message, Exception e, string category = LogCategories.Application, object? data = null)
+    {
+        _logger.ForContext("Category", category).Debug(e,"{message} {@data}", message, data);
     }
 }
