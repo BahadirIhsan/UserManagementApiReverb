@@ -17,8 +17,11 @@ using Serilog;
 using Serilog.Events;
 using Amazon.CloudWatchLogs;
 using Amazon.Runtime;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Serilog.Formatting.Json;
 using Serilog.Sinks.AwsCloudWatch;
+using UserManagementApiReverb.BusinessLayer.FluentValidation;
 using UserManagementApiReverb.BusinessLayer.Logging;
 using UserManagementApiReverb.PresentationLayer.Middleware;
 
@@ -86,6 +89,15 @@ builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IUserRoleMapper, UserRoleMapper>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<UserRequestRegisterValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<RoleCreateRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<RoleUpdateRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UserRoleAssignValidator>();
+
+
+
+
 
 builder.Services.AddControllers();
 
