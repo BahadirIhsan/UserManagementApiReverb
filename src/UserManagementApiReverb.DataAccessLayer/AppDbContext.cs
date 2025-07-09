@@ -13,24 +13,8 @@ public class AppDbContext : DbContext
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<Role>()
-            .HasIndex(r => r.RoleName)
-            .IsUnique();
-        
-        modelBuilder.Entity<UserRole>()
-            .HasKey(ur => new { ur.UserId, ur.RoleId }); // primaryKey
-        
-        modelBuilder.Entity<UserRole>()
-            .HasOne(ur => ur.User)
-            .WithMany(u => u.UserRoles)
-            .HasForeignKey(ur => ur.UserId); // ForeignKey
-        
-        modelBuilder.Entity<UserRole>()
-            .HasOne(ur => ur.Role)
-            .WithMany(u => u.UserRoles)
-            .HasForeignKey(ur => ur.RoleId); // ForeignKey
     }
     
 }
