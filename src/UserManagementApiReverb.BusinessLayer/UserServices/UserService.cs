@@ -114,7 +114,7 @@ public class UserService : IUserService
 
         if (await _db.Users.AnyAsync(u => u.UserName == req.Username))
         {
-            throw new ArgumentException("UserName already exists");
+            throw new ArgumentException("Username already exists");
         }
 
         string hash = BCrypt.Net.BCrypt.HashPassword(req.Password);

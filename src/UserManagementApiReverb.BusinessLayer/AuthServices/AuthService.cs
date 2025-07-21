@@ -33,7 +33,21 @@ public class AuthService : IAuthService
         }
         
         var tokenResult = _token.GenerateToken(user);
+        
+        // BU KISMI İMPLEMENTE EDEREK DEVAMINDA BU BLOĞU AÇMAMIZ LAZIM.
+        /*
+        // 2. Session oluştur
+        var session = await _userSessionService.CreateSessionAsync(user.Id, accessToken);
 
+        // 3. Audit Log kaydı yap (session kaydı için)
+        await _auditLogger.LogChange(
+            userId: user.Id,
+            table: "UserSessions",
+            oldValues: null,
+            newValues: session,
+            action: "Create"
+        );
+        */
         return new LoginResponse
         {
             AccessToken = tokenResult.AccessToken,

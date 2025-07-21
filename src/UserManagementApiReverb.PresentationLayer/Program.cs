@@ -23,6 +23,7 @@ using Serilog.Formatting.Json;
 using Serilog.Sinks.AwsCloudWatch;
 using UserManagementApiReverb.BusinessLayer.FluentValidation;
 using UserManagementApiReverb.BusinessLayer.Logging;
+using UserManagementApiReverb.DataAccessLayer.Interceptors;
 using UserManagementApiReverb.PresentationLayer.Middleware;
 
 
@@ -77,9 +78,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
     });
 
-builder.Services.AddDbContext<AppDbContext>(options => 
-    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
-    ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
+
+builder.Services.AddScoped<AuditSaveChangesInterceptor>();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+{
+    var interceptor = sp.GetRequiredService<AuditSaveChangesInterceptor>();
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    
+    options.UseMySql(
+        connectionString,
+        ServerVersion.AutoDetect(connectionString)
+    );
+    options.AddInterceptors(interceptor); 
+});
+    
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserMapper, UserMapper>();

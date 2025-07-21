@@ -1,7 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace UserManagementApiReverb.Entities.Entities;
 
 public class User
 {
+    [Key]
+    [Column(TypeName = "char(36)")]
     public Guid UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
@@ -11,7 +16,7 @@ public class User
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
     
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? Birthday { get; set; }
     
     // buradaki collection tanımlamasın da direk olarak collection'u initialize ediyoruz çünkü direkt olarak eleman ekleyebilmek için eğer başlatmasaydık

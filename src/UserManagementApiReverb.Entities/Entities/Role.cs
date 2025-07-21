@@ -7,7 +7,7 @@ public class Role
     public string? RoleDescription { get; set; }
     public bool IsSystemRole { get; set; } = false;
     
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     
     // neden eşitleme yaptığımızı açıkladık User kısmında bu ifade için oradan bakabilirsin.

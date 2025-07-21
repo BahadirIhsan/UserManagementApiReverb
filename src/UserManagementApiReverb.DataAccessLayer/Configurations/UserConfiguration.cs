@@ -35,16 +35,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(50);
         
         builder.Property(u => u.PhoneNumber)
-            .HasMaxLength(11);
+            .HasMaxLength(20);
         
         builder.Property(u => u.Address)
             .HasMaxLength(300);
         
         builder.Property(u => u.Birthday)
             .HasColumnType("date");
-        
-        builder.Property(u => u.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()"); // sunucu saat farklarını engelleyip otomatik olarak zaman damgası verir.
         
         builder.HasIndex(u => u.UserName).IsUnique();
         builder.HasIndex(u => u.Email).IsUnique();
@@ -53,8 +50,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(u => u.UserRoles)
             .WithOne(u => u.User)
             .HasForeignKey(u => u.UserId);
-        
-        
+
+        builder.Property(u => u.CreatedAt)
+            .HasColumnType("timestamp")
+            .ValueGeneratedOnAdd();
+
         //--- (İsteğe Bağlı) SOFT DELETE + CONCURRENCY -----------------------
         // Eğer entity'ye IsDeleted ve RowVersion eklediysen:
         // b.Property(u => u.IsDeleted).HasDefaultValue(false);

@@ -23,9 +23,11 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
     
         builder.Property(r => r.IsSystemRole)
             .HasDefaultValue(false);
-        
-        builder.Property(r => r.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+
+        builder.Property(u => u.CreatedAt)
+            .HasColumnType("timestamp")
+            .ValueGeneratedOnAdd();
+
         
         // UpdatedAt’i burada kısıtlamıyoruz; uygulama müdahale edecek
         

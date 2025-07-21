@@ -10,16 +10,20 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
         builder.ToTable("UserRoles");
         
         builder.HasKey(ur => new { ur.UserId, ur.RoleId });
+        
 
         builder.HasOne(ur => ur.User)
             .WithMany(u => u.UserRoles)
-            .HasForeignKey(ur => ur.UserId);
+            .HasForeignKey(ur => ur.UserId)
+            .OnDelete(DeleteBehavior.Cascade); // kullanıcı silinirse ilişkili roller de silinsin
+            
         
         builder.HasOne(ur => ur.Role)
             .WithMany(r => r.UserRoles)
-            .HasForeignKey(ur => ur.RoleId);
+            .HasForeignKey(ur => ur.RoleId)
+            .OnDelete(DeleteBehavior.Cascade); // rol silinirse ilişkili kullanıcılar silinsin
+
         
-        builder.Property(ur => ur.AssignedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+        
     }
 }
