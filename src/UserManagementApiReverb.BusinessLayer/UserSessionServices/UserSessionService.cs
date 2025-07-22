@@ -6,7 +6,7 @@ using UserManagementApiReverb.BusinessLayer.Services.Abstract;
 using UserManagementApiReverb.DataAccessLayer;
 using UserManagementApiReverb.Entities.Entities;
 
-namespace UserManagementApiReverb.BusinessLayer.Services.Concrete
+namespace UserManagementApiReverb.BusinessLayer.UserSessionServices
 {
     public class UserSessionService : IUserSessionService
     {

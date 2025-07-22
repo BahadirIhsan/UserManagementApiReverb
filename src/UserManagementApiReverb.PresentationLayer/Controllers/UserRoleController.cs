@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagementApiReverb.BusinessLayer.DTOs.UserRole;
+using UserManagementApiReverb.BusinessLayer.Logging;
 using UserManagementApiReverb.BusinessLayer.UserRoleService;
 
 namespace UserManagementApiReverb.PresentationLayer.Controllers;
@@ -11,10 +12,12 @@ namespace UserManagementApiReverb.PresentationLayer.Controllers;
 public class UserRoleController : ControllerBase
 {
     private readonly IUserRoleService _userRoleService;
+    private readonly IAppLogger _logger;
 
-    public UserRoleController(IUserRoleService userRoleService)
+    public UserRoleController(IUserRoleService userRoleService,  IAppLogger logger)
     {
         _userRoleService = userRoleService;
+        _logger = logger;
     }
     
     [HttpGet("UsersByRoleId")]
@@ -41,12 +44,19 @@ public class UserRoleController : ControllerBase
                 UserId = userId,
                 RoleId = roleId
             });
+            _logger.LogInfo("Controller: Assigned role to user", LogCategories.Audit, new { userId, roleId });
             return Ok("Role assigned to user");
-            
+
         }
         catch (InvalidOperationException e)
         {
+            _logger.LogWarn("Controller Warning: Failed to assign role to user", LogCategories.Audit, new { userId, roleId });
             return BadRequest(e.Message);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Controller Error: Unexpected error while assigning role to user",e ,LogCategories.Audit, new { userId, roleId });
+            return StatusCode(500, "Unexpected error");
         }
         
     }
@@ -64,13 +74,24 @@ public class UserRoleController : ControllerBase
             });
             if (!removedRole)
             {
+                _logger.LogWarn("Controller Warning: Tried to remove role from user, but role not found",
+                    LogCategories.Audit, new { userId, roleId });
                 return NotFound();
             }
+
+            _logger.LogInfo("Controller: Removed role from user", LogCategories.Audit, new { userId, roleId });
             return NoContent();
         }
         catch (InvalidOperationException e)
         {
+            _logger.LogWarn("Controller Warning: Failed to remove role from user", LogCategories.Audit,
+                new { userId, roleId });
             return BadRequest(e.Message);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Controller Error: Unexpected error while removing role from user",e ,LogCategories.Audit, new { userId, roleId });
+            return StatusCode(500, "Unexpected error");
         }
     }
     

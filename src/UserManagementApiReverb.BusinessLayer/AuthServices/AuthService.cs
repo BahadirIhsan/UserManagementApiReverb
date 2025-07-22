@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagementApiReverb.BusinessLayer.DTOs.Auth;
+using UserManagementApiReverb.BusinessLayer.Logging;
+using UserManagementApiReverb.BusinessLayer.Services.Abstract;
 using UserManagementApiReverb.DataAccessLayer;
 
 namespace UserManagementApiReverb.BusinessLayer.AuthServices;
@@ -8,11 +10,15 @@ public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
     private readonly ITokenService _token;
+    private readonly IAppLogger _logger;
+    private readonly IUserSessionService _userSessionService;
     
-    public AuthService(AppDbContext db, ITokenService token)
+    public AuthService(AppDbContext db, ITokenService token, IAppLogger logger, IUserSessionService userSessionService)
     {
         _db = db;
         _token = token;
+        _logger = logger;
+        _userSessionService = userSessionService;
     }
     
     public async Task<LoginResponse> LoginUserAsync(LoginRequest req)
@@ -20,19 +26,27 @@ public class AuthService : IAuthService
         var user = await _db.Users.Include(u => u.UserRoles)
                             .ThenInclude(u => u.Role)
                             .FirstOrDefaultAsync(u => u.Email == req.Email);
-
+        
         if (user == null)
         {
+            _logger.LogWarn("Login attempt failed: user not found", LogCategories.Security, new {req.Email});
             throw new UnauthorizedAccessException("User not found");
         }
 
         bool isValid = BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash);
         if (!isValid)
         {
+            _logger.LogWarn("Incorrect password attempt", LogCategories.Security, new {req.Email});
             return null;
         }
         
+        // token üeritliyor 
         var tokenResult = _token.GenerateToken(user);
+        // session kayıt işlemi
+        var session = await _userSessionService.CreateSessionAsync(user.UserId, tokenResult.AccessToken);
+        
+        
+        _logger.LogInfo("User logged in and session created", LogCategories.Security, new {req.Email});
         
         // BU KISMI İMPLEMENTE EDEREK DEVAMINDA BU BLOĞU AÇMAMIZ LAZIM.
         /*

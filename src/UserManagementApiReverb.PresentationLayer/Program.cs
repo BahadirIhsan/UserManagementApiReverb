@@ -23,6 +23,8 @@ using Serilog.Formatting.Json;
 using Serilog.Sinks.AwsCloudWatch;
 using UserManagementApiReverb.BusinessLayer.FluentValidation;
 using UserManagementApiReverb.BusinessLayer.Logging;
+using UserManagementApiReverb.BusinessLayer.Services.Abstract;
+using UserManagementApiReverb.BusinessLayer.UserSessionServices;
 using UserManagementApiReverb.DataAccessLayer.Interceptors;
 using UserManagementApiReverb.PresentationLayer.Middleware;
 
@@ -103,6 +105,7 @@ builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IUserRoleMapper, UserRoleMapper>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserSessionService, UserSessionService>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<UserRequestRegisterValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<RoleCreateRequestValidator>();
@@ -110,11 +113,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<RoleUpdateRequestValidator>
 builder.Services.AddValidatorsFromAssemblyContaining<UserRoleAssignValidator>();
 
 
-
-
-
 builder.Services.AddControllers();
-
 
 
 var region  = builder.Configuration["AWS:Region"]    ?? "eu-north-1";
@@ -124,9 +123,18 @@ var secretKey  = builder.Configuration["AWS:SecretKey"];
 
 var awsCreds   = new BasicAWSCredentials(accessKey, secretKey);
 
-var options = new CloudWatchSinkOptions
+var userOptions = new CloudWatchSinkOptions
 {
     LogGroupName = logGroup,
+    MinimumLogEventLevel = LogEventLevel.Information,
+    TextFormatter = new JsonFormatter(),
+    // Her uygulama instance’ı için otomatik stream adı (“hostname-tarih”)
+    LogStreamNameProvider = new DefaultLogStreamProvider()
+};
+
+var devOptions = new CloudWatchSinkOptions
+{
+    LogGroupName = "UserManagementApiReverbDev",
     MinimumLogEventLevel = LogEventLevel.Information,
     TextFormatter = new JsonFormatter(),
     // Her uygulama instance’ı için otomatik stream adı (“hostname-tarih”)
@@ -141,8 +149,11 @@ var cloudWatchConfig = new AmazonCloudWatchLogsConfig
 var cloudWatchClient = new AmazonCloudWatchLogsClient(awsCreds, cloudWatchConfig);
 
 // Serilog ve CloudWatch
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()                                // global eşik
+var userLogger = new LoggerConfiguration()
+    .MinimumLevel.Information() // global eşik
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning) // .NET logları sadece Warning ve üzeri
+    .MinimumLevel.Override("System", LogEventLevel.Warning)     // System logları sadece Warning ve üzeri
+    .MinimumLevel.Override("UserManagementApiReverb", LogEventLevel.Information) // Senin kendi namespace’lerin
     .MinimumLevel.Override("Security", LogEventLevel.Information)
     .MinimumLevel.Override("Audit", LogEventLevel.Information)
     .MinimumLevel.Override("Performance", LogEventLevel.Information)
@@ -153,8 +164,31 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithClientIp()
     .Enrich.WithEnvironmentName()
     .Enrich.WithProperty("Service", "UserManagementApiReverb")
-    .WriteTo.AmazonCloudWatch(options, cloudWatchClient) // logları aws cloudwatch'a gönderir
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(le => le.Properties.ContainsKey("Category"))
+        .WriteTo.AmazonCloudWatch(userOptions, cloudWatchClient))    
     .WriteTo.Console()
+    .CreateLogger();
+
+var devLogger = new LoggerConfiguration()
+    .MinimumLevel.Information() // global eşik
+    .MinimumLevel.Override("Security", LogEventLevel.Information)
+    .MinimumLevel.Override("Audit", LogEventLevel.Information)
+    .MinimumLevel.Override("Performance", LogEventLevel.Information)
+    .MinimumLevel.Override("Business", LogEventLevel.Information)
+    .MinimumLevel.Override("Application", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithClientIp()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithProperty("Service", "UserManagementApiReverb")
+    .WriteTo.AmazonCloudWatch(devOptions, cloudWatchClient) // dikkat: Filter yok!
+    .CreateLogger();
+
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Logger(userLogger)   // özel logları ayrıca user log grubuna da gönder
+    .WriteTo.Logger(devLogger)    // developer log grubuna da gönder
     .CreateLogger();
 
 
@@ -184,3 +218,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
+Log.CloseAndFlush(); // EKLE
+

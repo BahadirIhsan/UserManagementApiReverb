@@ -23,6 +23,7 @@ public class AuditSaveChangesInterceptor : SaveChangesInterceptor
         var context = eventData.Context;
         var UserId = GetUserId();
 
+        // changeTracker ile değişiklik olan tüm yapılar burada tutuluyor. gerek güncelleme gerek silme gerek ekleme olarak.
         var entries = context.ChangeTracker.Entries().ToList(); // Koleksiyonu sabitliyoruz
 
         foreach (var entry in entries

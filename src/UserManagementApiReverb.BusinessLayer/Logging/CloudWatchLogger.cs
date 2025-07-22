@@ -33,6 +33,6 @@ public class CloudWatchLogger : IAppLogger
 
     public void LogCritical(string message, Exception e, string category = LogCategories.Application, object? data = null)
     {
-        _logger.ForContext("Category", category).Debug(e,"{message} {@data}", message, data);
+        _logger.ForContext("Category", category).Fatal(e,"{message} {@data}", message, data);
     }
 }
