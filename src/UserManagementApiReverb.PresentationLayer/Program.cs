@@ -203,6 +203,7 @@ builder.Services.AddScoped<ILogQueryService, LogQueryService>();
 var app = builder.Build();
 
 app.UseMiddleware<LogEnrichmentMiddleware>();
+app.UseMiddleware<TransactionMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

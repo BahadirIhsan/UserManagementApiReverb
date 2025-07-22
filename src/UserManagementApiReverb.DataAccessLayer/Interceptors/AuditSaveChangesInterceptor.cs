@@ -51,7 +51,7 @@ public class AuditSaveChangesInterceptor : SaveChangesInterceptor
         
         return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
-
+    
     private Guid? GetUserId()
     {
         var userIdStr = _http.HttpContext?.User?.FindFirst("sub")?.Value;

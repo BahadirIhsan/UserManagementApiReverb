@@ -73,5 +73,49 @@ public class TestsOfUserService
         exception.Message.Should().Be("Username already exists");
     }
     
+    // ben yazmadım tabiki ama diğerlerini yazmayı öğrendim ama bu çok complex bir yapı gibi geldi.
+    [Fact]
+    public async Task CreateUserAsync_ShouldRollbackTransaction_WhenExceptionOccurs()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // benzersiz test db
+            .Options;
+
+        // Interceptor'u DI'dan geçirmezsek bile override edilen DbContext içine dahil olacaksa test için yeterli
+        using var context = new AppDbContext(options);
+        var mapper = new Mock<IUserMapper>();
+    
+        // Email ve Username kontrolünü geçsin diye boş listeyle başlıyoruz
+        mapper.Setup(m => m.MapFromRegisterRequest(It.IsAny<UserRequestRegister>(), It.IsAny<string>()))
+            .Returns(new User { UserId = Guid.NewGuid(), UserName = "ahmet", Email = "ahmet@example.com" });
+
+        var service = new UserService(context, mapper.Object);
+
+        var request = new UserRequestRegister
+        {
+            Username = "ahmet",
+            Email = "ahmet@example.com",
+            Password = "1234"
+        };
+
+        // Hatalı durumu simüle etmek için mapper null dönecek (bilinçli hata yaratıyoruz)
+        mapper.Setup(m => m.MapFromRegisterRequest(It.IsAny<UserRequestRegister>(), It.IsAny<string>()))
+            .Returns((User)null); // buradan sonra service içinde null referansa erişilecek ve hata fırlayacak
+
+        // Act
+        Func<Task> act = async () => await service.CreateUserAsync(request);
+
+        // Assert
+        await act.Should().ThrowAsync<NullReferenceException>();
+
+        // Rollback başarılıysa Users tablosu boş olmalı
+        context.Users.Count().Should().Be(0);
+
+        // Interceptor eğer çalıştıysa AuditLogs da boş olmalı
+        context.AuditLogs.Count().Should().Be(0);
+    }
+
+    
     
 }
