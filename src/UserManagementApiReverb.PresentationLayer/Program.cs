@@ -134,44 +134,23 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-Console.WriteLine($"Active Environment: {builder.Environment.EnvironmentName}");
+// Console.WriteLine($"Active Environment: {builder.Environment.EnvironmentName}");
 
 var environment = builder.Environment.EnvironmentName;
 
-var region  = builder.Configuration["AWS:Region"]    ?? "eu-north-1";
-var logGroupProd = environment switch
-{
-    "Development" => "UserManagementApiReverb",     // gerçek log grubu
-    "Production"  => "UserManagementApiReverb",     // yine aynı olabilir
-    _             => "UserManagementApiReverb"
-};
-
-var logGroupDev = environment switch
-{
-    "Development" => "UserManagementApiReverbDev",  // dev için farklı log grubu
-    "Production"  => "UserManagementApiReverbDev",  // production’da bile ayrı loglar olabilir
-    _             => "UserManagementApiReverbDev"
-};
+var region  = builder.Configuration["AWS:Region"] ?? "eu-north-1";
+var logGroup = builder.Configuration["AWS:LogGroupName"];// Ortam dosyasından geliyor
 var accessKey  = builder.Configuration["AWS:AccessKey"];
 var secretKey  = builder.Configuration["AWS:SecretKey"];
 
 var awsCreds   = new BasicAWSCredentials(accessKey, secretKey);
 
-var userOptions = new CloudWatchSinkOptions
+// CloudWatch log ayarları
+var cloudWatchOptions = new CloudWatchSinkOptions
 {
-    LogGroupName = logGroupProd,
-    MinimumLogEventLevel = LogEventLevel.Information,
+    LogGroupName = logGroup,
+    MinimumLogEventLevel = environment == "Development" ? LogEventLevel.Information : LogEventLevel.Warning,
     TextFormatter = new JsonFormatter(),
-    // Her uygulama instance’ı için otomatik stream adı (“hostname-tarih”)
-    LogStreamNameProvider = new DefaultLogStreamProvider()
-};
-
-var devOptions = new CloudWatchSinkOptions
-{
-    LogGroupName = logGroupDev,
-    MinimumLogEventLevel = LogEventLevel.Information,
-    TextFormatter = new JsonFormatter(),
-    // Her uygulama instance’ı için otomatik stream adı (“hostname-tarih”)
     LogStreamNameProvider = new DefaultLogStreamProvider()
 };
 
@@ -183,47 +162,29 @@ var cloudWatchConfig = new AmazonCloudWatchLogsConfig
 var cloudWatchClient = new AmazonCloudWatchLogsClient(awsCreds, cloudWatchConfig);
 
 // Serilog ve CloudWatch
-var userLogger = new LoggerConfiguration()
-    .MinimumLevel.Information() // global eşik
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning) // .NET logları sadece Warning ve üzeri
-    .MinimumLevel.Override("System", LogEventLevel.Warning)     // System logları sadece Warning ve üzeri
-    .MinimumLevel.Override("UserManagementApiReverb", LogEventLevel.Warning) // Senin kendi namespace’lerin
-    .MinimumLevel.Override("Security", LogEventLevel.Information)
-    .MinimumLevel.Override("Audit", LogEventLevel.Information)
-    .MinimumLevel.Override("Performance", LogEventLevel.Information)
-    .MinimumLevel.Override("Business", LogEventLevel.Information)
-    .MinimumLevel.Override("Application", LogEventLevel.Information)
+// Serilog ana logger (Category filtreli)
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Is(environment == "Development" ? LogEventLevel.Debug : LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("System", LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .Enrich.WithMachineName()
     .Enrich.WithClientIp()
     .Enrich.WithEnvironmentName()
     .Enrich.WithProperty("Service", "UserManagementApiReverb")
+    .WriteTo.Console()
     .WriteTo.Logger(lc => lc
         .Filter.ByIncludingOnly(le => le.Properties.ContainsKey("Category"))
-        .WriteTo.AmazonCloudWatch(userOptions, cloudWatchClient))    
-    .WriteTo.Console()
+        .WriteTo.AmazonCloudWatch(cloudWatchOptions, cloudWatchClient))
     .CreateLogger();
 
-var devLogger = new LoggerConfiguration()
-    .MinimumLevel.Debug() // global eşik
-    .MinimumLevel.Override("Security", LogEventLevel.Information)
-    .MinimumLevel.Override("Audit", LogEventLevel.Information)
-    .MinimumLevel.Override("Performance", LogEventLevel.Information)
-    .MinimumLevel.Override("Business", LogEventLevel.Information)
-    .MinimumLevel.Override("Application", LogEventLevel.Information)
-    .Enrich.FromLogContext()
-    .Enrich.WithMachineName()
-    .Enrich.WithClientIp()
-    .Enrich.WithEnvironmentName()
-    .Enrich.WithProperty("Service", "UserManagementApiReverb")
-    .WriteTo.AmazonCloudWatch(devOptions, cloudWatchClient) // dikkat: Filter yok!
-    .CreateLogger();
+Console.WriteLine($"LogGroupName: {logGroup}"); // DEBUG: log grubu çıktısı
+Console.WriteLine($"Aktif ortam: {environment}"); // DEBUG: console log
+
+Console.WriteLine($"Aktif ortam: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"LogGroup: {builder.Configuration["AWS:LogGroupName"]}");
 
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Logger(userLogger)   // özel logları ayrıca user log grubuna da gönder
-    .WriteTo.Logger(devLogger)    // developer log grubuna da gönder
-    .CreateLogger();
 
 
 builder.Host.UseSerilog();
@@ -238,9 +199,11 @@ var app = builder.Build();
 
 app.UseMiddleware<LogEnrichmentMiddleware>();
 app.UseMiddleware<TransactionMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
+
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
