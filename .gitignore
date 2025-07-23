@@ -4,3 +4,8 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 src/UserManagementApiReverb.PresentationLayer/appsettings.Development.json
+src/UserManagementApiReverb.PresentationLayer/appsettings.Production.json
+
+
+
+

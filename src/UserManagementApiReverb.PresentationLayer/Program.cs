@@ -128,9 +128,30 @@ builder.Services.AddValidatorsFromAssemblyContaining<UserRoleAssignValidator>();
 
 builder.Services.AddControllers();
 
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
+Console.WriteLine($"Active Environment: {builder.Environment.EnvironmentName}");
+
+var environment = builder.Environment.EnvironmentName;
 
 var region  = builder.Configuration["AWS:Region"]    ?? "eu-north-1";
-var logGroup   = builder.Configuration["AWS:LogGroup"]  ?? "UserManagementApiReverb";
+var logGroupProd = environment switch
+{
+    "Development" => "UserManagementApiReverb",     // gerçek log grubu
+    "Production"  => "UserManagementApiReverb",     // yine aynı olabilir
+    _             => "UserManagementApiReverb"
+};
+
+var logGroupDev = environment switch
+{
+    "Development" => "UserManagementApiReverbDev",  // dev için farklı log grubu
+    "Production"  => "UserManagementApiReverbDev",  // production’da bile ayrı loglar olabilir
+    _             => "UserManagementApiReverbDev"
+};
 var accessKey  = builder.Configuration["AWS:AccessKey"];
 var secretKey  = builder.Configuration["AWS:SecretKey"];
 
@@ -138,7 +159,7 @@ var awsCreds   = new BasicAWSCredentials(accessKey, secretKey);
 
 var userOptions = new CloudWatchSinkOptions
 {
-    LogGroupName = logGroup,
+    LogGroupName = logGroupProd,
     MinimumLogEventLevel = LogEventLevel.Information,
     TextFormatter = new JsonFormatter(),
     // Her uygulama instance’ı için otomatik stream adı (“hostname-tarih”)
@@ -147,7 +168,7 @@ var userOptions = new CloudWatchSinkOptions
 
 var devOptions = new CloudWatchSinkOptions
 {
-    LogGroupName = "UserManagementApiReverbDev",
+    LogGroupName = logGroupDev,
     MinimumLogEventLevel = LogEventLevel.Information,
     TextFormatter = new JsonFormatter(),
     // Her uygulama instance’ı için otomatik stream adı (“hostname-tarih”)
@@ -166,7 +187,7 @@ var userLogger = new LoggerConfiguration()
     .MinimumLevel.Information() // global eşik
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning) // .NET logları sadece Warning ve üzeri
     .MinimumLevel.Override("System", LogEventLevel.Warning)     // System logları sadece Warning ve üzeri
-    .MinimumLevel.Override("UserManagementApiReverb", LogEventLevel.Information) // Senin kendi namespace’lerin
+    .MinimumLevel.Override("UserManagementApiReverb", LogEventLevel.Warning) // Senin kendi namespace’lerin
     .MinimumLevel.Override("Security", LogEventLevel.Information)
     .MinimumLevel.Override("Audit", LogEventLevel.Information)
     .MinimumLevel.Override("Performance", LogEventLevel.Information)
@@ -184,7 +205,7 @@ var userLogger = new LoggerConfiguration()
     .CreateLogger();
 
 var devLogger = new LoggerConfiguration()
-    .MinimumLevel.Information() // global eşik
+    .MinimumLevel.Debug() // global eşik
     .MinimumLevel.Override("Security", LogEventLevel.Information)
     .MinimumLevel.Override("Audit", LogEventLevel.Information)
     .MinimumLevel.Override("Performance", LogEventLevel.Information)
