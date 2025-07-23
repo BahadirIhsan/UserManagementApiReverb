@@ -18,7 +18,7 @@ public class UserController:  ControllerBase
     }
 
     [HttpGet("{UserId:Guid}")]
-    public async Task<ActionResult<UserResponse>> GetById(Guid UserId)
+    public async Task<ActionResult<UserResponse>> GetById([FromQuery] Guid UserId)
     {
         var user = await _userService.GetUserAsyncById(UserId);
         if (user == null)
@@ -83,7 +83,7 @@ public class UserController:  ControllerBase
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<UserResponse>> Create(UserRequestRegister req)
+    public async Task<ActionResult<UserResponse>> Create([FromBody] UserRequestRegister req)
     {
         try
         {
@@ -101,19 +101,29 @@ public class UserController:  ControllerBase
         
     }
 
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
     [HttpPut("UpdateUser")]
-    public async Task<ActionResult<UserResponse>> Update(Guid UserId,UserRequestUpdate req)
+    public async Task<ActionResult<UserResponse>> Update(Guid UserId, UserRequestUpdate req)
     {
         if (req.Id == Guid.Empty || req.Id != UserId)
         {
-            return BadRequest("Id is invalid or empty");
+            return BadRequest(new ErrorResponse
+            {
+                StatusCode = 400,
+                Message = "Invalid request"
+            });
         }
         req.Id = UserId;
         var  user = await _userService.UpdateUserAsync(req);
 
         if (user == null)
         {
-            return BadRequest();
+            return BadRequest(new ErrorResponse
+            {
+                StatusCode = 400,
+                Message = "User not found"
+            });
         }
         return Ok(user);
     }
