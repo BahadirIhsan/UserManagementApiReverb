@@ -256,5 +256,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
-Log.CloseAndFlush(); // EKLE
 
