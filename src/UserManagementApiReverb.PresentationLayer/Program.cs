@@ -35,7 +35,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1",  new() { Title = "UserManagementApiReverb API", Version = "v1" });
+    options.SwaggerDoc("v1",  new Microsoft.OpenApi.Models.OpenApiInfo()
+    {
+        Title = "UserManagementApiReverb API", 
+        Version = "v1",
+        Description = "Baho'nun Uygulaması",
+    });
+    
+    // xml için tanımlama
+    var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+    
+    // BL (BusinessLayer) katmanı için de XML bağlayalım:
+    var xmlBL = "UserManagementApiReverb.BusinessLayer.xml"; // ← Assembly adına dikkat et!
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlBL));
     
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -209,7 +222,10 @@ app.UseMiddleware<TransactionMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "User Management Api Reverb v1");
+    });
 }
 
 app.UseHttpsRedirection();

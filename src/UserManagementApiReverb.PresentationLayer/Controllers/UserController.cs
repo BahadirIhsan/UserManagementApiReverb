@@ -76,8 +76,13 @@ public class UserController:  ControllerBase
         
         return Ok(users);
     }
-    
+    /// <summary>
+    /// Registers a new user to the system.
+    /// </summary>
     [HttpPost("SignUp")]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<UserResponse>> Create(UserRequestRegister req)
     {
         try
