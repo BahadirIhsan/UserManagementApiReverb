@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using UserManagementApiReverb.BusinessLayer.CloudWatchMetricsService;
 using UserManagementApiReverb.BusinessLayer.DTOs.Auth;
 using UserManagementApiReverb.BusinessLayer.Logging;
 using UserManagementApiReverb.BusinessLayer.Services.Abstract;
@@ -12,13 +13,15 @@ public class AuthService : IAuthService
     private readonly ITokenService _token;
     private readonly IAppLogger _logger;
     private readonly IUserSessionService _userSessionService;
+    private readonly ICloudWatchMetricsService _cloudWatchMetricsService;
     
-    public AuthService(AppDbContext db, ITokenService token, IAppLogger logger, IUserSessionService userSessionService)
+    public AuthService(AppDbContext db, ITokenService token, IAppLogger logger, IUserSessionService userSessionService, ICloudWatchMetricsService cloudWatchMetricsService)
     {
         _db = db;
         _token = token;
         _logger = logger;
         _userSessionService = userSessionService;
+        _cloudWatchMetricsService = cloudWatchMetricsService;
     }
     
     public async Task<LoginResponse> LoginUserAsync(LoginRequest req)
@@ -30,6 +33,8 @@ public class AuthService : IAuthService
         if (user == null)
         {
             _logger.LogWarn("Login attempt failed: user not found", LogCategories.Security, new {req.Email});
+            await _cloudWatchMetricsService.SendFailedLoginMetricAsync("/login", req.Email); // METRİK GÖNDERİMİ
+            Console.WriteLine("**************************************");
             throw new UnauthorizedAccessException("User not found");
         }
 

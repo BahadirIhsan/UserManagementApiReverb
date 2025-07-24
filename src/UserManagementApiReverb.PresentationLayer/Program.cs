@@ -21,6 +21,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Serilog.Formatting.Json;
 using Serilog.Sinks.AwsCloudWatch;
+using UserManagementApiReverb.BusinessLayer.CloudWatchMetricsService;
 using UserManagementApiReverb.BusinessLayer.FluentValidation;
 using UserManagementApiReverb.BusinessLayer.Logging;
 using UserManagementApiReverb.BusinessLayer.Services.Abstract;
@@ -193,6 +194,7 @@ builder.Services.AddSingleton<Serilog.ILogger>(Log.Logger);
 builder.Services.AddSingleton<IAppLogger, CloudWatchLogger>();
 builder.Services.AddSingleton<IAmazonCloudWatchLogs, AmazonCloudWatchLogsClient>();
 builder.Services.AddScoped<ILogQueryService, LogQueryService>();
+builder.Services.AddSingleton<ICloudWatchMetricsService, CloudWatchMetricsService>();
 
 
 var app = builder.Build();

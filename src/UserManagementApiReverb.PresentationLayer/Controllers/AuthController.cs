@@ -20,6 +20,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] LoginRequest req)
     {
+        
         var res = await _auth.LoginUserAsync(req);
 
         if (res == null)

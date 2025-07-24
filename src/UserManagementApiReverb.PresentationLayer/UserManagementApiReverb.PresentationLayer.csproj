@@ -10,30 +10,30 @@
   <ItemGroup>
     <PackageReference Include="AWS.Logger.SeriLog" Version="4.0.0" />
     <PackageReference Include="AWSSDK.CloudWatchLogs" Version="4.0.5.1" />
-    <PackageReference Include="AWSSDK.Core" Version="4.0.0.14" />
+    <PackageReference Include="AWSSDK.Core" Version="4.0.0.17" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.16" />
 
     <!-- EF Core 8 ve provider (Pomelo) -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore"            Version="8.0.17" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql"         Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.17" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
 
     <!-- Tasarım araçları yalnızca DataAccess’te şart; yine de eklersen PrivateAssets ile gizle -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design"     Version="8.0.17">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.17">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
     <!-- Microsoft.Extensions ailesini 8.0.6’da sabitle -->
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions"              Version="8.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory"                    Version="8.0.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection"               Version="8.0.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"  Version="8.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Logging"                           Version="8.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions"              Version="8.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Options"                           Version="8.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Primitives"                        Version="8.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.6" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Enrichers.ClientInfo" Version="2.2.0" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
