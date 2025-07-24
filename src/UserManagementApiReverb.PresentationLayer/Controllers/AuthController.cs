@@ -20,28 +20,15 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] LoginRequest req)
     {
-        try
-        {
-            var res = await _auth.LoginUserAsync(req);
+        var res = await _auth.LoginUserAsync(req);
 
-            if (res == null)
-            {
-                _logger.LogWarn("Failed login attempt: Invalid username or password", LogCategories.Security, new {req.Email});
-                return Unauthorized("Invalid username or password");
-            }
+        if (res == null)
+        {
+            _logger.LogWarn("Failed login attempt: Invalid password", LogCategories.Security, new { req.Email });
+            return Unauthorized("Invalid username or password");
+        }
 
-            _logger.LogInfo("User logged in successfully", LogCategories.Security, new {req.Email});
-            return Ok(res);
-        }
-        catch (UnauthorizedAccessException e)
-        {
-            _logger.LogWarn("Controller Warning: Failed login attempt: user not found", LogCategories.Security, new {req.Email});
-            return Unauthorized(e.Message);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError("Controller Error: Unexpected error during login",e,  LogCategories.Security, new {req.Email});
-            return StatusCode(500 ,"Internal Server Error");
-        }
+        _logger.LogInfo("User logged in successfully", LogCategories.Security, new { req.Email });
+        return Ok(res);
     }
 }

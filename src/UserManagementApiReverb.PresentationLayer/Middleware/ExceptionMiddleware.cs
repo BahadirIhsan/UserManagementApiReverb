@@ -1,5 +1,10 @@
 using System.Net;
 using System.Text.Json;
+using Amazon.Runtime;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using FluentValidation;
+using UserManagementApiReverb.BusinessLayer.DTOs;
 
 namespace UserManagementApiReverb.PresentationLayer.Middleware;
 
@@ -29,6 +34,7 @@ public class ExceptionMiddleware
             var statusCode = (int)HttpStatusCode.InternalServerError;
             var message = "Beklenmeyen bir hata meydana geldi. Lütfen daha sonra tekrar deneyin.";
             var logMessage = "Genel Hata - Exception middleware yakaladı.";
+            object? details = null;
 
             switch (ex)
             {
@@ -48,6 +54,31 @@ public class ExceptionMiddleware
                     statusCode = (int)HttpStatusCode.NotFound;
                     message = "İstenen veri bulunamadı.";
                     logMessage = "404 NOT FOUND - Veri yok.";
+                    break;
+                
+                case DbUpdateException:
+                    statusCode = 500;
+                    message = "Veritabanı hatası oluştu.";
+                    break;
+                
+                case AmazonServiceException:
+                    statusCode = 503;
+                    message = "Harici servis geçici olarak kullanılamıyor (AWS).";
+                    break;
+                
+                case SecurityTokenExpiredException:
+                    statusCode = 401;
+                    message = "Oturum süresi dolmuş. Lütfen tekrar giriş yapın.";
+                    break;
+                
+                case FluentValidation.ValidationException validationEx:
+                    statusCode = 400;
+                    message = "Geçersiz istek verisi.";
+                    details = validationEx.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        error = e.ErrorMessage
+                    });
                     break;
                 
                 default:
@@ -72,8 +103,10 @@ public class ExceptionMiddleware
                 {
                     StatusCode = statusCode,
                     Message = message,
-                    Exception = ex,
-                    StackTrace = ex.StackTrace
+                    ExceptionMessage = ex.Message,
+                    ExceptionType = ex.GetType().Name,
+                    StackTrace = ex.StackTrace,
+                    Details = details
                 }
                 : new
                 {
