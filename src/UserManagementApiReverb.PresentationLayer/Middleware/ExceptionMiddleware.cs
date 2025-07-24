@@ -4,6 +4,7 @@ using Amazon.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using FluentValidation;
+using UserManagementApiReverb.BusinessLayer.CloudWatchMetricsService;
 using UserManagementApiReverb.BusinessLayer.DTOs;
 
 namespace UserManagementApiReverb.PresentationLayer.Middleware;
@@ -13,12 +14,15 @@ public class ExceptionMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionMiddleware> _logger;
     private readonly IHostEnvironment _env;
+    private readonly ICloudWatchMetricsService _metricsService;
 
-    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, IHostEnvironment env)
+
+    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, IHostEnvironment env,  ICloudWatchMetricsService metricsService)
     {
         _next = next;
         _logger = logger;
         _env = env;
+        _metricsService = metricsService;
     }
 
     public async Task Invoke(HttpContext context)
@@ -35,7 +39,9 @@ public class ExceptionMiddleware
             var message = "Beklenmeyen bir hata meydana geldi. Lütfen daha sonra tekrar deneyin.";
             var logMessage = "Genel Hata - Exception middleware yakaladı.";
             object? details = null;
-
+            
+            var endpoint = context.Request.Path.Value;
+            
             switch (ex)
             {
                 case ArgumentNullException:
@@ -122,6 +128,16 @@ public class ExceptionMiddleware
             
             var json = JsonSerializer.Serialize(errorResponse, jsonOptions);
             context.Response.StatusCode = statusCode;
+            
+            try
+            {
+                await _metricsService.SendErrorMetricAsync(endpoint ?? "Unknown", statusCode);
+            }
+            catch (Exception metricEx)
+            {
+                _logger.LogError(metricEx, "Metric gönderimi sırasında hata oluştu.");
+            }
+            
             await context.Response.WriteAsync(json);
         }
         

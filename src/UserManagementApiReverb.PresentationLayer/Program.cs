@@ -202,6 +202,9 @@ var app = builder.Build();
 app.UseMiddleware<LogEnrichmentMiddleware>();
 app.UseMiddleware<TransactionMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<RequestMetricsMiddleware>();
+app.UseMiddleware<ResponseTimeMiddleware>();
+
 
 
 // Configure the HTTP request pipeline.
