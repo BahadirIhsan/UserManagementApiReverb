@@ -32,6 +32,20 @@ public class CloudWatchAlarmController : ControllerBase
             return StatusCode(500, new {message = "failed to create alarm", error = e.Message});
         }
     }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetAllAlarms()
+    {
+        var alarms = await _alarmService.GetAllAlarmsAsync();
+        return Ok(alarms);
+    }
+
+    [HttpDelete("{alarmName}")]
+    public async Task<IActionResult> DeleteAlarm(string alarmName)
+    {
+        await _alarmService.DeleteAlarmAsync(alarmName);
+        return NoContent();
+    }
 
 
 }

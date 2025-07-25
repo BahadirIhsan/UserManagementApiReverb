@@ -52,4 +52,23 @@ public class CloudWatchAlarmService :  ICloudWatchAlarmService
         
         await _cloudWatch.PutMetricAlarmAsync(alarmRequest);
     }
+    
+    public async Task<List<string>> GetAllAlarmsAsync()
+    {
+        var request = new DescribeAlarmsRequest();
+        var response = await _cloudWatch.DescribeAlarmsAsync(request);
+
+        return response.MetricAlarms.Select(a => a.AlarmName).ToList();
+    }
+    
+    public async Task DeleteAlarmAsync(string alarmName)
+    {
+        var request = new DeleteAlarmsRequest
+        {
+            AlarmNames = new List<string> { alarmName }
+        };
+
+        await _cloudWatch.DeleteAlarmsAsync(request);
+    }
+
 }
