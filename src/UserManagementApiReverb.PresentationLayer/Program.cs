@@ -195,6 +195,8 @@ builder.Services.AddSingleton<IAppLogger, CloudWatchLogger>();
 builder.Services.AddSingleton<IAmazonCloudWatchLogs, AmazonCloudWatchLogsClient>();
 builder.Services.AddScoped<ILogQueryService, LogQueryService>();
 builder.Services.AddSingleton<ICloudWatchMetricsService, CloudWatchMetricsService>();
+builder.Services.AddSingleton<ActiveUserStore>();
+
 
 
 var app = builder.Build();
@@ -221,6 +223,10 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<ActiveUserTrackingMiddleware>(); // bu middleware'ın diğerlerinden farklı olarak burada olması gerekiyor çünkü bu kısımda yapılan işlem 
+// auth işlemleri öncelikle bunların yapılması lazım ki userlar göncellenebilsin ve denetlenebilsin yoksa boşa çalışan bir middleware olur
+
 
 app.MapControllers();
 app.Run();

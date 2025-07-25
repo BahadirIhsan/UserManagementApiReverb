@@ -6,5 +6,7 @@ public interface ICloudWatchMetricsService
     Task SendRequestCountMetricAsync(string endpoint);
     Task SendErrorMetricAsync(string endpoint, int statusCode);
     Task SendResponseTimeMetricAsync(String endpoint, int statusCode, long responseTimeMs);
+    Task SendActiveUserCountMetricAsync(int activeUserCount);
+
 
 }

@@ -153,15 +153,37 @@ public class CloudWatchMetricsService : ICloudWatchMetricsService
                 new MetricDatum
                 {
                     MetricName = "ResponseTime",
-                    Value = responseTimeMs,
+                    Value = Convert.ToDouble(responseTimeMs),
                     Unit = StandardUnit.Milliseconds,
                     Timestamp = DateTime.UtcNow,
                     Dimensions = dimensions
                 }
             }
         };
+        
+        Console.WriteLine($"[CloudWatch] Namespace: {_namespace}");
 
         await _client.PutMetricDataAsync(req);
         
+    }
+
+    public async Task SendActiveUserCountMetricAsync(int activeUserCount)
+    {
+        var req = new PutMetricDataRequest
+        {
+            Namespace = _namespace,
+            MetricData = new List<MetricDatum>
+            {
+                new MetricDatum
+                {
+                    MetricName = "ActiveUserSessions",
+                    Value = Convert.ToDouble(activeUserCount),
+                    Unit = StandardUnit.Count,
+                    Timestamp = DateTime.UtcNow
+                }
+            }
+        };
+
+        await _client.PutMetricDataAsync(req);
     }
 }
