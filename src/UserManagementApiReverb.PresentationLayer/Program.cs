@@ -1,4 +1,5 @@
 using System.Text;
+using Amazon.CloudWatch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using UserManagementApiReverb.BusinessLayer.AuthServices;
@@ -17,6 +18,7 @@ using Serilog;
 using Serilog.Events;
 using Amazon.CloudWatchLogs;
 using Amazon.Runtime;
+using Amazon.SimpleNotificationService;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Serilog.Formatting.Json;
@@ -24,6 +26,8 @@ using Serilog.Sinks.AwsCloudWatch;
 using UserManagementApiReverb.BusinessLayer.CloudWatchMetricsService;
 using UserManagementApiReverb.BusinessLayer.FluentValidation;
 using UserManagementApiReverb.BusinessLayer.Logging;
+using UserManagementApiReverb.BusinessLayer.MonitoringAlarmService;
+using UserManagementApiReverb.BusinessLayer.NotificationServices;
 using UserManagementApiReverb.BusinessLayer.Services.Abstract;
 using UserManagementApiReverb.BusinessLayer.UserSessionServices;
 using UserManagementApiReverb.DataAccessLayer.Interceptors;
@@ -120,6 +124,7 @@ builder.Services.AddScoped<IUserRoleMapper, UserRoleMapper>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserSessionService, UserSessionService>();
+builder.Services.AddScoped<ICloudWatchAlarmService, CloudWatchAlarmService>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<UserRequestRegisterValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<RoleCreateRequestValidator>();
@@ -196,6 +201,15 @@ builder.Services.AddSingleton<IAmazonCloudWatchLogs, AmazonCloudWatchLogsClient>
 builder.Services.AddScoped<ILogQueryService, LogQueryService>();
 builder.Services.AddSingleton<ICloudWatchMetricsService, CloudWatchMetricsService>();
 builder.Services.AddSingleton<ActiveUserStore>();
+builder.Services.AddAWSService<IAmazonCloudWatch>();
+
+builder.Services.AddAWSService<IAmazonCloudWatch>();
+builder.Services.AddAWSService<IAmazonSimpleNotificationService>();
+
+builder.Services.AddSingleton<SnsService>();
+builder.Services.AddScoped<ICloudWatchAlarmService, CloudWatchAlarmService>();
+
+
 
 
 
@@ -206,6 +220,7 @@ app.UseMiddleware<TransactionMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RequestMetricsMiddleware>();
 app.UseMiddleware<ResponseTimeMiddleware>();
+
 
 
 
