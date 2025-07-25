@@ -31,6 +31,8 @@ using UserManagementApiReverb.BusinessLayer.NotificationServices;
 using UserManagementApiReverb.BusinessLayer.Services.Abstract;
 using UserManagementApiReverb.BusinessLayer.UserSessionServices;
 using UserManagementApiReverb.DataAccessLayer.Interceptors;
+using UserManagementApiReverb.DataAccessLayer.Repositories.Classes;
+using UserManagementApiReverb.DataAccessLayer.Repositories.Interfaces;
 using UserManagementApiReverb.PresentationLayer.Middleware;
 
 
@@ -125,6 +127,10 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserSessionService, UserSessionService>();
 builder.Services.AddScoped<ICloudWatchAlarmService, CloudWatchAlarmService>();
+
+// ilk repo tanımı için
+builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<UserRequestRegisterValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<RoleCreateRequestValidator>();
